@@ -9,10 +9,13 @@ def display_menu():
     print('E) Exit')
 
 def display_suspect(suspect, graph):
-    print(f'{suspect}:')
-    accomplices = graph.get(suspect, [])
-    for accomplice in accomplices:
-            print(f'    {accomplice}')
+    accomplices = graph.get(suspect, set())
+    if accomplices:
+        print(f'{suspect}:')
+        for accomplice in sorted(accomplices):
+                print(f'    {accomplice}')
+    else:
+        print(f'{suspect}:')
 
 
 def display_all_suspects(graph):
@@ -33,17 +36,24 @@ def find_potential_accomplices(suspect, graph):
     potential_accomplices -= graph.get(suspect, set())
     potential_accomplices.discard(suspect)
     
-    return potential_accomplices
+    return {suspect: potential_accomplices}
 
 
 def display_potential_accomplices(suspect, graph):
     potential_new_accomplices = find_potential_accomplices(suspect, graph)
     print('---- Potential accomplices ----')
-    print('Already known accomplices: ')
+
+    print('Already known accomplices:')
     display_suspect(suspect, graph)
-    print()
-    print('Potential new accomplices:')
-    display_suspect(suspect, potential_new_accomplices)
+
+    print('\nPotential new accomplices:')
+    accomplices = potential_new_accomplices[suspect]
+    if accomplices:
+        print(f'{suspect}:')
+        for accomplice in sorted(accomplices):
+            print(f'    {accomplice}')
+    else:
+        print(f'{suspect}:')
 
 
 def load_from_file(filename):
@@ -56,7 +66,7 @@ def save_to_file(graph, filename):
         pickle.dump(graph, file)
 
 def main():
-    filename = input('Social graph filename: ')
+    filename = input('Social graph filename: ').strip()
 
     try:
         social_graph = load_from_file(filename)
@@ -81,10 +91,10 @@ def main():
             suspect = input('Name a suspect: ').strip()
             accomplice = input('Name the accomplice: ').strip()
             if suspect in social_graph:
+                social_graph[suspect].add(accomplice)
                 if accomplice not in social_graph:
                     # Initialize accomplice in graph if not already present
                     social_graph[accomplice] = set()
-                social_graph[suspect].add(accomplice)
                 social_graph[accomplice].add(suspect)
                 save_to_file(social_graph, filename)
 
@@ -96,7 +106,7 @@ def main():
             if suspect in social_graph:
                 display_potential_accomplices(suspect, social_graph)
         
-        elif choice.capitalize() == 'E':
+        elif choice.lower() == 'e':
             keep_going = False
                 
 
