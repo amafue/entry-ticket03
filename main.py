@@ -5,14 +5,14 @@ def display_menu():
     print('1) Add suspect')
     print('2) Add accomplice')
     print('3) Display all suspects')
-    print('4) Finnd potential accomplices')
+    print('4) Find potential accomplices')
     print('E) Exit')
 
 def display_suspect(suspect, graph):
-    if suspect in graph:
-        print(f'{suspect}: ')
-        for accomplice in graph[suspect]:
-            print(f'\t{accomplice}')
+    print(f'{suspect}:')
+    accomplices = graph.get(suspect, [])
+    for accomplice in accomplices:
+            print(f'    {accomplice}')
 
 
 def display_all_suspects(graph):
@@ -20,20 +20,20 @@ def display_all_suspects(graph):
     # graph[suspect] = accomplice
     print('---- All suspects ----')
     for suspect in graph:
-        display_suspect(graph)
+        display_suspect(suspect, graph)
 
 
 def find_potential_accomplices(suspect, graph):
     potential_accomplices = set()
 
-    for accomplice in graph[suspect]:
+    for accomplice in graph.get(suspect, []):
         # set difference, includes all other accomplice but the current one 
         potential_accomplices.update(graph.get(accomplice, set()))
     
-    potential_accomplices -= graph[suspect]
+    potential_accomplices -= graph.get(suspect, set())
     potential_accomplices.discard(suspect)
     
-    return {suspect: potential_accomplices}
+    return potential_accomplices
 
 
 def display_potential_accomplices(suspect, graph):
@@ -80,21 +80,21 @@ def main():
         elif choice == '2':
             suspect = input('Name a suspect: ').strip()
             accomplice = input('Name the accomplice: ').strip()
-            for suspect in social_graph and accomplice in social_graph:
+            if suspect in social_graph:
+                if accomplice not in social_graph:
+                    # Initialize accomplice in graph if not already present
+                    social_graph[accomplice] = set()
                 social_graph[suspect].add(accomplice)
                 social_graph[accomplice].add(suspect)
                 save_to_file(social_graph, filename)
-
-                if suspect in social_graph:
-                    social_graph[accomplice] = set(suspect)
-                    save_to_file(filename)
 
         elif choice == '3':
             display_all_suspects(social_graph)
 
         elif choice == '4':
             suspect = input('Name a suspect: ').strip()
-            display_potential_accomplices(suspect, social_graph)
+            if suspect in social_graph:
+                display_potential_accomplices(suspect, social_graph)
         
         elif choice.capitalize() == 'E':
             keep_going = False
