@@ -1,3 +1,5 @@
+import pickle
+
 def display_menu():
     print('---- Menu ----')
     print('1) Add suspect')
@@ -35,19 +37,68 @@ def find_potential_accomplices(suspect, graph):
 
 
 def display_potential_accomplices(suspect, graph):
-    potential_new = find_potential_accomplices(suspect, graph)
-    known = display_suspect(suspect, graph)
-    new = display_all_suspects(suspect, potential_new)
+    potential_new_accomplices = find_potential_accomplices(suspect, graph)
     print('---- Potential accomplices ----')
     print('Already known accomplices: ')
+    display_suspect(suspect, graph)
+    print()
+    print('Potential new accomplices:')
+    display_suspect(suspect, potential_new_accomplices)
 
 
-# def display_all_suspects(graph):
-#     print('---- All suspects ----')
-#     display_suspect(, graph)
+def load_from_file(filename):
+    with open(filename, 'rb') as file:
+        return pickle.load(file)
+
+
+def save_to_file(graph, filename):
+    with open(filename, 'wb') as file:
+        pickle.dump(graph, file)
+
+def main():
+    filename = input('Social graph filename: ')
+
+    try:
+        social_graph = load_from_file(filename)
+        print('*** Graph loaded from file. ***')
+    except FileNotFoundError:
+        social_graph = {}
+        print('*** File not found. Starting with empty graph. ***')
+            
+    
+    keep_going = True
+    while keep_going:
+        display_menu()
+        choice = input('Option: ').strip() # prevents errors of extra spaces 
+
+        if choice == '1':
+            suspect = input('Name a suspect: ').strip()
+            if suspect not in social_graph:
+                social_graph[suspect] = set()
+                save_to_file(social_graph, filename)
+
+        elif choice == '2':
+            suspect = input('Name a suspect: ').strip()
+            accomplice = input('Name the accomplice: ').strip()
+            for suspect in social_graph and accomplice in social_graph:
+                social_graph[suspect].add(accomplice)
+                social_graph[accomplice].add(suspect)
+                save_to_file(social_graph, filename)
+
+                if suspect in social_graph:
+                    social_graph[accomplice] = set(suspect)
+                    save_to_file(filename)
+
+        elif choice == '3':
+            display_all_suspects(social_graph)
+
+        elif choice == '4':
+            suspect = input('Name a suspect: ').strip()
+            display_potential_accomplices(suspect, social_graph)
         
-# def main():
-#     social_graph: 
+        elif choice.capitalize() == 'E':
+            keep_going = False
+                
 
-# if __name__ == '__main__':
-#     main()
+if __name__ == '__main__':
+    main()
